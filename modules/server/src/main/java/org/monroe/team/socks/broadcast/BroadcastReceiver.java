@@ -43,7 +43,7 @@ public class BroadcastReceiver<MessageType> {
 
     public synchronized void shutdown() {
 
-        if (broadcastReceiveThread == null || broadcastReceiveThread.stillAlive){
+        if (broadcastReceiveThread == null || !broadcastReceiveThread.stillAlive){
             broadcastReceiveThread = null;
             return;
         }

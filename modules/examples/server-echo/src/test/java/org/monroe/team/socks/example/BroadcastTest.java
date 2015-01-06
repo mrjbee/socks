@@ -22,17 +22,15 @@ public class BroadcastTest extends TestSupport {
     private BroadcastAnnouncer<Map<String,String>> announcer;
     private static List<Map<String,String>> messagesList = new ArrayList<Map<String, String>>();
 
-    @BeforeClass
-    public static void init() throws ConnectionException {
+    static int port = 12121;
+
+    @Before
+    public  void init() throws ConnectionException {
         receiver = new BroadcastReceiver<Map<String, String>>(
                 new MapBroadcastMessageTransport(),
                 createObserver()
         );
-        receiver.start(0);
-    }
-
-    @Before
-    public void prepare() throws ConnectionException {
+        receiver.start(port);
         Assert.assertEquals(receiver.isAlive(), true);
         messagesList.clear();
         announcer = new BroadcastAnnouncer<Map<String, String>>(new MapBroadcastMessageTransport());
@@ -42,10 +40,6 @@ public class BroadcastTest extends TestSupport {
     public void cleanup(){
         messagesList.clear();
         announcer.destroy();
-    }
-
-    @AfterClass
-    public static void destroy(){
         receiver.shutdown();
     }
 
@@ -54,12 +48,22 @@ public class BroadcastTest extends TestSupport {
         //nothing here yet
         Map<String,String> msg= new HashMap<String, String>();
         msg.put("test", "value");
-        announcer.sendMessage(receiver.getPort(), msg);
+        announcer.sendMessage(port, msg);
         waitUnless(messagesList, 1);
         Assert.assertEquals(1, messagesList.size());
         Assert.assertEquals("value",messagesList.get(0).get("test"));
     }
 
+    @Test
+    public void shouldReceiveSecondTime() throws InvalidProtocolException, SendFailException, InterruptedException {
+        //nothing here yet
+        Map<String,String> msg= new HashMap<String, String>();
+        msg.put("test", "value");
+        announcer.sendMessage(receiver.getPort(), msg);
+        waitUnless(messagesList, 1);
+        Assert.assertEquals(1, messagesList.size());
+        Assert.assertEquals("value",messagesList.get(0).get("test"));
+    }
     private static BroadcastReceiver.BroadcastMessageObserver<Map<String, String>> createObserver() {
         return new BroadcastReceiver.BroadcastMessageObserver<Map<String, String>>() {
             @Override
